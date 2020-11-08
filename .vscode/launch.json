@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "type": "cortex-debug",
+          "request": "launch",
+          "servertype": "openocd",
+          "cwd": "${workspaceRoot}",
+          "preLaunchTask": "make",
+          "executable": "c:/Users/Uzivatel/Documents/_vyvoj/ARM FW/DS18B20_driver/build/DB18B20_driver.elf",
+          "name": "Debug (OpenOCD)",
+          "device": "STM32F446xx",
+          "svdFile" : "c:/Users/Uzivatel/Documents/_vyvoj/ARM-tools/cmsis-svd/data/STMicro/STM32F446.svd",
+          "configFiles": [
+              "interface/stlink-v2.cfg",
+              "target/stm32f4x.cfg"
+          ]
+      },
+      {
+          "type": "cortex-debug",
+          "request": "attach",
+          "servertype": "openocd",
+          "cwd": "${workspaceRoot}",
+          "executable": "c:/Users/Uzivatel/Documents/_vyvoj/ARM FW/DS18B20_driver/build/DB18B20_driver.elf",
+          "name": "Attach (OpenOCD)",
+          "device": "STM32F446xx",
+          "svdFile" : "c:/Users/Uzivatel/Documents/_vyvoj/ARM-tools/cmsis-svd/data/STMicro/STM32F446.svd",
+          "configFiles": [
+              "interface/stlink-v2.cfg",
+              "target/stm32f4x.cfg"
+          ]
+      }
+  ]
+}
