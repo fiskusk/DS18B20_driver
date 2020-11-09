@@ -55,10 +55,14 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
 Src/stm32f4xx_hal_msp.c \
 Src/stm32f4xx_it.c \
-Src/system_stm32f4xx.c
+fldflSrc/system_stm32f4xx.c \
+$(wildcard lib/*.c)
 
 # C++ sources
-CPP_SOURCES = $(wildcard Src/*.cpp)
+CPP_SOURCES =  \
+$(wildcard Src/*.cpp) \
+$(wildcard lib/*.cpp)
+
 
 
 # ASM sources
@@ -125,7 +129,8 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Include \
 -IDrivers/STM32F4xx_HAL_Driver/Inc \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--IInc
+-IInc \
+-Ilib
 
 
 
@@ -181,7 +186,7 @@ $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	@$(AS) -c $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	@$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	@$(SZ) $@
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
