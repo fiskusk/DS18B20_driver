@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "led.h"
 
 /* USER CODE END Includes */
 
@@ -56,7 +57,7 @@ extern "C" void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+Led led;
 /* USER CODE END 0 */
 
 /**
@@ -66,6 +67,7 @@ extern "C" void MX_USART2_UART_Init(void);
 extern "C" int main(void)
 {
   /* USER CODE BEGIN 1 */
+    led.init(LD2_GPIO_Port, LD2_Pin);
 
   /* USER CODE END 1 */
 
@@ -89,6 +91,9 @@ extern "C" int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+    led.blink(20, 2000);
+
+    led.strobe(50, 10);
 
   /* USER CODE END 2 */
 
@@ -97,10 +102,17 @@ extern "C" int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+    uint32_t tick = HAL_GetTick();
+
+    led.update(tick);
+
+    /*
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
     HAL_Delay(50);
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
     HAL_Delay(850);
+    */
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
