@@ -157,7 +157,7 @@ LDSCRIPT = STM32F446RETx_FLASH.ld
 # libraries
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
-LDFLAGS = $(MCU) -Wl,--no-wchar-size-warning -specs=nosys.specs -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS)
+LDFLAGS = $(MCU) -Wl,--no-wchar-size-warning -specs=nosys.specs -specs=nano.specs -lc -lrdimon -u _printf_float -T$(LDSCRIPT) $(LIBDIR) $(LIBS)
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
