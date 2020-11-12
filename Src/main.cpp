@@ -23,6 +23,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "led.h"
+#include "tm_stm32_ds18b20.h"
+#include "tm_stm32_onewire.h"
+#include "stdio.h"
+#include  <errno.h>
+#include  <sys/unistd.h> // STDOUT_FILENO, STDERR_FILENO
 
 /* USER CODE END Includes */
 
@@ -45,6 +50,15 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+/* Onewire structure */
+TM_OneWire_t OW;
+
+/* Array for DS18B20 ROM number */
+uint8_t DS_ROM[8];
+
+/* Temperature variable */
+float temp;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,6 +73,22 @@ extern "C" void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN 0 */
 Led led;
 /* USER CODE END 0 */
+
+extern "C" int _write(int file, char const *data, int len)
+{
+   if ((file != STDOUT_FILENO) && (file != STDERR_FILENO))
+   {
+      errno = EBADF;
+      return -1;
+   }
+
+   // arbitrary timeout 1000
+   HAL_StatusTypeDef status =
+      HAL_UART_Transmit(&huart2, (uint8_t*)data, len, 1000);
+
+   // return # of bytes written - as best we can tell
+   return (status == HAL_OK ? len : 0);
+}
 
 /**
   * @brief  The application entry point.
@@ -91,9 +121,39 @@ extern "C" int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+
+
+    /* Init ONEWIRE port on PB4 pin */
+    TM_OneWire_Init(&OW, GPIOB, GPIO_PIN_4);
+
     led.blink(20, 2000);
 
-    led.strobe(50, 10);
+    /* Check if any device is connected */
+	if (TM_OneWire_First(&OW)) {
+		led.strobe(300, 3);
+		
+		/* Read ROM number */
+		TM_OneWire_GetFullROM(&OW, DS_ROM);
+	} else {
+		led.strobe(50, 20);
+	}
+
+    /* Start temp conversion */
+	if (TM_DS18B20_Is(DS_ROM)) {
+		/* Set resolution */
+		TM_DS18B20_SetResolution(&OW, DS_ROM, TM_DS18B20_Resolution_12bits);
+		
+		/* Set high and low alarms */
+		TM_DS18B20_SetAlarmHighTemperature(&OW, DS_ROM, 30);
+		TM_DS18B20_SetAlarmLowTemperature(&OW, DS_ROM, 10);
+		
+		/* Start conversion on all sensors */
+		TM_DS18B20_StartAll(&OW);
+	}
+    setbuf(stdout, NULL);           // it is necessary to redirect to usb
+
+    volatile uint32_t startTick = HAL_GetTick();
+    static const uint32_t delay = 1000;
 
   /* USER CODE END 2 */
 
@@ -106,6 +166,33 @@ extern "C" int main(void)
     uint32_t tick = HAL_GetTick();
 
     led.update(tick);
+    
+    if (tick > startTick + delay) {
+        /* Check if connected device is DS18B20 */
+        if (TM_DS18B20_Is(DS_ROM)) {
+            /* Everything is done */
+            if (TM_DS18B20_AllDone(&OW)) {
+                /* Read temperature from device */
+                if (TM_DS18B20_Read(&OW, DS_ROM, &temp)) {
+                    /* Temp read OK, CRC is OK */
+                    
+                    /* Start again on all sensors */
+                    TM_DS18B20_StartAll(&OW);
+                    
+                    /* Check temperature */
+                    if (temp > 30) {
+                        led.ledOn();
+                    } else {
+                        led.ledOff();
+                    }
+                    printf("Measured temperature: %f \260C\r", temp);
+                } else {
+                    /* CRC failed, hardware problems on data line */
+                }
+            }
+        }
+        startTick = tick;
+    }
 
     /*
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
