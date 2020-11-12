@@ -11,6 +11,8 @@ class Led {
         void init(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
         void blink(uint32_t onTime, uint32_t period);
         void strobe(uint32_t onOffTime, uint16_t repeats);
+        void ledOn();
+        void ledOff();
         void update(uint32_t tick);
 
     private:
@@ -25,4 +27,5 @@ class Led {
         uint32_t strobeStartTime;
         uint16_t strobeRepeats;
         uint32_t strobeOnOffTime;
+        bool manualDrive;
 };
